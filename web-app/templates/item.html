@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ item['Clothes Title'] }} · ShopReview{% endblock %}
+
+{% block body %}
+<div class="container">
+
+    <a href="javascript:history.back()" class="back-link">← Back to results</a>
+
+    <div class="item-detail">
+        <div class="item-detail-header">
+            <h1>{{ item['Clothes Title'] }}</h1>
+            <span class="category-tag">{{ item['Class Name'] }}</span>
+        </div>
+
+        <p class="item-full-desc">{{ item['Clothes Description'] }}</p>
+
+        <div class="item-stats">
+            <div class="stat">
+                <span class="stat-label">Rating</span>
+                <span class="stat-value">⭐ {{ item['Rating'] }} / 5</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Age</span>
+                <span class="stat-value">{{ item['Age'] }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Division</span>
+                <span class="stat-value">{{ item['Division Name'] }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Department</span>
+                <span class="stat-value">{{ item['Department Name'] }}</span>
+            </div>
+        </div>
+
+        <div class="recommendation-status">
+            {% if item['Recommended IND'] == 1 %}
+                <span class="badge-large recommended">✓ Recommended</span>
+            {% else %}
+                <span class="badge-large not-recommended">✗ Not Recommended</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="review-section">
+        <h2>Customer Review</h2>
+        <div class="review-card">
+            <h3 class="review-title">{{ item['Title'] }}</h3>
+            <p class="review-text">{{ item['Review Text'] }}</p>
+        </div>
+    </div>
+
+    <div class="write-review-cta">
+        <h3>Have you tried this item?</h3>
+        <p>Share your experience and help other shoppers!</p>
+        <a href="/review/new/{{ item['Clothing ID'] }}" class="btn">Write a Review</a>
+    </div>
+
+</div>
+{% endblock %}

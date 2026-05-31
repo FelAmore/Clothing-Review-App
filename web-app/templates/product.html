@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ product['Clothes Title'] }} · ShopReview{% endblock %}
+
+{% block body %}
+<div class="container">
+
+    <a href="javascript:history.back()" class="back-link">← Back to results</a>
+
+    <div class="item-detail">
+        <div class="item-detail-header">
+            <h1>{{ product['Clothes Title'] }}</h1>
+            <span class="category-tag">{{ product['Class Name'] }}</span>
+        </div>
+
+        <p class="item-full-desc">{{ product['Clothes Description'] }}</p>
+
+        <div class="item-stats">
+            <div class="stat">
+                <span class="stat-label">Division</span>
+                <span class="stat-value">{{ product['Division Name'] }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Department</span>
+                <span class="stat-value">{{ product['Department Name'] }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Total Reviews</span>
+                <span class="stat-value">{{ reviews|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="review-section">
+        <div class="review-section-header">
+            <h2>Customer Reviews ({{ reviews|length }})</h2>
+            <a href="/review/new/{{ clothing_id }}" class="btn">+ Add a Review</a>
+        </div>
+
+        {% if reviews %}
+            {% for review in reviews %}
+            <a href="/item/{{ review['index'] }}" class="review-preview-card">
+                <div class="review-preview-header">
+                    <h3>{{ review['Title'] }}</h3>
+                    <div class="item-meta">
+                        <span class="rating">⭐ {{ review['Rating'] }}/5</span>
+                        {% if review['Recommended IND'] == 1 %}
+                            <span class="badge recommended">Recommended ✓</span>
+                        {% else %}
+                            <span class="badge not-recommended">Not Recommended</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="review-text">{{ review['Review Text'][:200] }}...</p>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="no-results">
+                <p>No reviews yet for this product. Be the first!</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

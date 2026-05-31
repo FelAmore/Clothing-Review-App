@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Search · ShopReview{% endblock %}
+
+{% block body %}
+<div class="container">
+
+    <form class="search-form" action="/search" method="GET">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search clothing...">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if query %}
+        <p class="results-count">
+            Found <strong>{{ results|length }}</strong> product(s) matching "<strong>{{ query }}</strong>"
+        </p>
+    {% else %}
+        <p class="results-count">Showing all products</p>
+    {% endif %}
+
+    {% if results %}
+        <div class="item-grid">
+            {% for item in results %}
+            <a href="/product/{{ item['Clothing ID'] }}" class="item-card">
+                <div class="item-info">
+                    <h3>{{ item['Clothes Title'] }}</h3>
+                    <p class="item-cat">{{ item['Class Name'] }}</p>
+                    <p class="item-desc">{{ item['Clothes Description'][:120] }}...</p>
+                    <div class="item-meta">
+                        <span class="rating">⭐ {{ item['Rating'] }}/5</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <p>No products found for "<strong>{{ query }}</strong>". Try a different keyword!</p>
+            <a href="/search" class="btn">Browse All Products</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

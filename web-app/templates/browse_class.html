@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ class_name }} · ShopReview{% endblock %}
+
+{% block body %}
+<div class="container">
+    <a href="/browse/department/{{ dept_name }}" class="back-link">← Back to {{ dept_name }}</a>
+    <h1 class="section-title">{{ class_name }}</h1>
+    <p class="results-count">{{ titles|length }} item(s) found</p>
+    <div class="item-grid">
+        {% for title in titles %}
+        <a href="/browse/department/{{ dept_name }}/class/{{ class_name }}/title/{{ title }}" class="item-card product-card">
+            {% if title in title_images %}
+            <div class="product-img-wrap">
+                <img src="{{ url_for('static', filename=title_images[title]) }}" alt="{{ title }}">
+            </div>
+            {% endif %}
+            <div class="item-info">
+                <h3>{{ title }}</h3>
+                <p class="item-cat">{{ class_name }} · {{ dept_name }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

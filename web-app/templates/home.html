@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Home · ShopReview{% endblock %}
+
+{% block body %}
+<div class="best-selling-label">
+    <h2>Our Best Sellers</h2>
+</div>
+
+<div class="hero-banner">
+    <div class="hero-banner-img">
+        <a href="/browse/department/Dresses/class/Dresses/title/Elegant A-Line Dress">
+            <img src="{{ url_for('static', filename='pic1.jpeg') }}" alt="Clothing 1">
+        </a>
+    </div>
+    <div class="hero-banner-img">
+        <a href="/browse/department/Tops/class/Knits/title/Classic Ribbed Knit Top">
+            <img src="{{ url_for('static', filename='pic2.jpeg') }}" alt="Clothing 2">
+        </a>
+    </div>
+    <div class="hero-banner-img">
+        <a href="/browse/department/Dresses/class/Dresses/title/Petite Floral Midi Dress">
+            <img src="{{ url_for('static', filename='pic3.jpeg') }}" alt="Clothing 3">
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <h2 class="section-title">Recent Products</h2>
+    <div class="item-grid">
+        {% for item in recent_items %}
+        <a href="/product/{{ item['Clothing ID'] }}" class="item-card">
+            <div class="item-info">
+                <h3>{{ item['Clothes Title'] }}</h3>
+                <p class="item-cat">{{ item['Class Name'] }}</p>
+                <p class="item-desc">{{ item['Clothes Description'][:100] }}...</p>
+                <div class="item-meta">
+                    <span class="rating">⭐ {{ item['Rating'] }}/5</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

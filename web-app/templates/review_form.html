@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Write a Review · ShopReview{% endblock %}
+
+{% block body %}
+<div class="container">
+    <a href="/product/{{ clothing_id }}" class="back-link">← Back to product</a>
+
+    <h1>Write a Review</h1>
+    <p class="subtitle">Your feedback helps other shoppers make better decisions.</p>
+
+    <form class="review-form" action="/review/confirm" method="POST" id="reviewForm">
+
+        <div class="form-group">
+            <label for="title">Review Title *</label>
+            <input type="text" id="title" name="title" placeholder="e.g. Love this dress!" required>
+        </div>
+
+        <div class="form-group">
+            <label for="review_text">Review Description *</label>
+            <textarea id="review_text" name="review_text" rows="6"
+                      placeholder="Tell us about your experience..." required></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rating">Rating *</label>
+                <select id="rating" name="rating" required>
+                    <option value="">Select rating</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                    <option value="4">⭐⭐⭐⭐ 4 - Good</option>
+                    <option value="3">⭐⭐⭐ 3 - Average</option>
+                    <option value="2">⭐⭐ 2 - Poor</option>
+                    <option value="1">⭐ 1 - Terrible</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Your Age *</label>
+                <input type="number" id="age" name="age" placeholder="e.g. 28" min="18" max="100" required>
+            </div>
+        </div>
+
+        <input type="hidden" name="clothing_id" value="{{ clothing_id }}">
+
+        <div class="form-group">
+            <div class="recommend-header">
+                <label>Recommended</label>
+                <button type="button" id="classifyBtn" class="btn btn-classify" disabled>Classify</button>
+            </div>
+            <div class="recommend-input-row">
+                <input type="text" id="recommendDisplay" placeholder="—" readonly>
+                <button type="button" id="overwriteBtn" class="btn btn-overwrite" disabled>Overwrite</button>
+            </div>
+            <input type="hidden" id="recommended" name="recommended" value="">
+            <input type="hidden" id="model_prediction" name="model_prediction" value="">
+            <p class="recommend-hint" id="recommendHint">Fill in all required fields, then hit Classify.</p>
+        </div>
+
+        <button type="submit" class="btn btn-submit" id="submitBtn" disabled>Save Review</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const titleEl      = document.getElementById('title');
+    const reviewEl     = document.getElementById('review_text');
+    const ratingEl     = document.getElementById('rating');
+    const classifyBtn  = document.getElementById('classifyBtn');
+    const overwriteBtn = document.getElementById('overwriteBtn');
+    const submitBtn    = document.getElementById('submitBtn');
+    const display      = document.getElementById('recommendDisplay');
+    const hiddenRec    = document.getElementById('recommended');
+    const hiddenModel  = document.getElementById('model_prediction');
+    const ageEl        = document.getElementById('age');
+    const hint         = document.getElementById('recommendHint');
+
+    let modelValue   = null;   // what the model returned
+    let isOverwrite  = false;  // whether overwrite mode is active
+
+    function requiredFilled() {
+        return titleEl.value.trim() !== '' &&
+               reviewEl.value.trim() !== '' &&
+               ratingEl.value !== '' &&
+               ageEl.value.trim() !== '';
+    }
+
+    // enable/disable Classify based on required fields
+    function updateClassifyBtn() {
+        classifyBtn.disabled = !requiredFilled();
+    }
+
+    [titleEl, reviewEl, ratingEl, ageEl].forEach(el => {
+        el.addEventListener('input', () => {
+            updateClassifyBtn();
+            // reset classification if user edits fields after classifying
+            if (modelValue !== null) {
+                modelValue = null;
+                isOverwrite = false;
+                display.value = '';
+                display.readOnly = true;
+                overwriteBtn.disabled = true;
+                submitBtn.disabled = true;
+                hiddenRec.value = '';
+                hiddenModel.value = '';
+                hint.textContent = 'Fields changed — please Classify again.';
+                hint.style.display = '';
+                overwriteBtn.classList.remove('active');
+            }
+        });
+    });
+
+    classifyBtn.addEventListener('click', function () {
+        classifyBtn.disabled = true;
+        classifyBtn.textContent = 'Classifying…';
+        hint.textContent = '';
+
+        fetch('/classify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: titleEl.value,
+                review_text: reviewEl.value
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            modelValue = String(data.prediction);
+            display.value = modelValue;
+            display.readOnly = true;
+            hiddenModel.value = modelValue;
+            hiddenRec.value   = modelValue;
+            isOverwrite = false;
+            overwriteBtn.disabled = false;
+            overwriteBtn.classList.remove('active');
+            submitBtn.disabled = false;
+            hint.style.display = 'none';
+            classifyBtn.disabled = false;
+            classifyBtn.textContent = 'Classify';
+        })
+        .catch(() => {
+            hint.textContent = 'Classification failed. Please try again.';
+            hint.style.display = '';
+            classifyBtn.disabled = false;
+            classifyBtn.textContent = 'Classify';
+        });
+    });
+
+    
+    overwriteBtn.addEventListener('click', function () {
+        if (!isOverwrite) {
+            isOverwrite = true;
+            display.readOnly = false;
+            display.focus();
+            display.select();
+            overwriteBtn.textContent = 'Cancel';
+            overwriteBtn.classList.add('active');
+            hint.textContent = 'Edit the box (0 or 1), then hit Save.';
+            hint.style.display = '';
+        } else {
+            isOverwrite = false;
+            display.value = modelValue;
+            display.readOnly = true;
+            hiddenRec.value = modelValue;
+            overwriteBtn.textContent = 'Overwrite';
+            overwriteBtn.classList.remove('active');
+            hint.style.display = 'none';
+        }
+    });
+
+    // when user edits the display box in overwrite mode, validate and update hidden
+    display.addEventListener('input', function () {
+        if (!isOverwrite) return;
+        const val = display.value.trim();
+        if (val === '0' || val === '1') {
+            hiddenRec.value = val;
+            hint.textContent = val === '1' ? 'Will save as: Recommended' : 'Will save as: Not Recommended';
+        } else {
+            hiddenRec.value = '';
+            hint.textContent = 'Please enter only 0 or 1.';
+        }
+    });
+
+    // disable submit if overwrite mode has invalid value
+    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+        if (hiddenRec.value === '') {
+            e.preventDefault();
+            hint.textContent = 'Please enter a valid value (0 or 1) before saving.';
+            hint.style.display = '';
+        }
+    });
+
+    updateClassifyBtn();
+</script>
+{% endblock %}
